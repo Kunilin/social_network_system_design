@@ -1,0 +1,547 @@
+openapi: 3.1.0
+info:
+  title: VK Social Network API
+  description: REST API для социальной сети с функционалом друзей, постов, медиа и сообщений
+
+  version: 1.0.0
+
+tags:
+  - name: VK
+    description: VK REST API
+
+paths:
+  /users/{user_id}/chats:
+    get:
+      tags:
+        - users
+      summary: Просмотр диалогов и чатов пользователя.
+      operationId: getAllChats
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user to get chats list
+          required: true
+          schema:
+            type: integer
+            format: int32
+           
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chat'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chat'
+        '400':
+          description: Invalid status value
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /users/{user_id}/friends:
+    get:
+      tags:
+        - friends
+      summary: Просмотр друзей пользователя.
+      operationId: getFriends
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user to get chats list
+          required: true
+          schema:
+            type: integer
+            format: int32           
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid status value
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users/{user_id}:
+    get:
+      tags:
+        - users
+      summary: Просмотр анкеты пользователя.
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user to get his page
+          required: true
+          schema:
+            type: integer
+            format: int32
+           
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid status value
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /users/{user_id}/friends/{friend_id}:
+    post:
+      tags:
+        - friends
+      summary: Добавление друзей.
+      operationId: addFriend
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+        - name: friend_id
+          in: path
+          description: ID of friend
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - friends
+      summary: Удаление друзей.
+      operationId: deleteFriend
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+        - name: friend_id
+          in: path
+          description: ID of friend
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /posts/{user_id}/publish:
+    post:
+      tags:
+        - posts
+      summary: Опубликовать пост.
+      operationId: publishPost
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:  
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "Мой новый пост!"
+                mediaIds:
+                  type: array
+                  items:
+                    type: integer
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /posts/{user_id}/loadmedia:
+    post:
+      tags:
+        - posts
+      summary: Загрузка медиа файлов для постов.
+      operationId: loadMedia
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody: 
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                mediaType:
+                  type: string
+                  enum: [image, video, audio]
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /posts/{user_id}/feed:
+    get:
+      tags:
+        - posts
+      summary: Просмотр ленты постов пользователя.
+      operationId: getFeed
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400':
+          description: Invalid status value
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+  /messages/{user_id}/{chat_id}:
+    post:
+      tags:
+        - messages
+      summary: Отправка сообщений в диалогах и чатах.
+      operationId: sendMessage
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+        - name: chat_id
+          in: path
+          description: ID of chat
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:  
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  example: "Привет!"
+                mediaIds:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - messages
+      summary: Чтение сообщений в диалогах и чатах.
+      operationId: getMessage
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+        - name: chat_id
+          in: path
+          description: ID of chat
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Message'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [10]
+          description: ID пользователя
+        firstName:
+          type: string
+          examples: [John]
+          description: Имя пользователя
+        lastName:
+          type: string
+          examples: [Doe]
+          description: Фамилия пользователя
+        email:
+          type: string
+          examples: [john@email.com]
+          description: email пользователя
+        avatar:
+          type: string
+          format: uri
+          example: "https://api.vkclone.com/media/avatars/123456.jpg"
+          description: URL аватара
+      xml:
+        name: user
+    Chat:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+          description: ID чата
+        name:
+          type: string
+          example: "Новый чатик"
+          description: Название чата
+        avatar:
+          type: string
+          format: uri
+          description: Аватар чата
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          description: Участники чата
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+          description: ID сообщения
+        text:
+          type: string
+          example: "Привет! Как дела?"
+          description: Содержимое чата
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+          description: Прикрепленные файлы
+        from:
+          $ref: '#/components/schemas/User'
+          description: От кого сообщение
+        to:
+          $ref: '#/components/schemas/User'
+          description: Кому сообщение
+        isRead:
+          type: boolean
+          description: Прочитано ли сообщение
+    Media:
+      type: object
+      properties:
+        id: 
+          type: integer
+          format: int64
+        name:
+          type: string
+          description: Название медиафайла
+        url:
+          type: string
+          format: uri
+          description: Путь до файла
+        size:
+          type: number
+          format: float
+          description: Размер файла
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+          description: ID поста
+        text:
+          type: string
+          example: "Всем привет! Это мой первый пост"
+          description: Содержимое поста
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+          description: Прикрепленные файлы
+        likes:
+          type: integer
+          format: int64
+          example: 52
+          description: Количество лайков на посте
+        shares:
+          type: integer
+          format: int64
+          example: 12
+          description: Количество репостов на посте
+        author:
+          $ref: '#/components/schemas/User'
+          description: Автор поста
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+    
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        details:
+          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен для авторизации
