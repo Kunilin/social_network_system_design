@@ -1,0 +1,78 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id uuid [primary key]
+  name varchar
+  surname varchar
+  description varchar
+  photo uuid [note: 'ID фото в таблице media']
+  city varchar
+  interests varchar[]
+  created_at timestamp
+}
+
+Table media {
+  id uuid [primary key]
+  file_name varchar
+  path_to_s3 varchar
+  size float
+  type varchar [note: 'photo, video, audio']
+  created_at timestamp
+}
+
+Table relations {
+  user_id uuid
+  related_user_id uuid
+  relation_type text [note: 'friend, subscriber, love']
+  primary key (user_id, related_user_id, relation_type)
+}
+
+Table posts {
+  id uuid [primary key]
+  description text [note: 'Текстовое содержимое поста']
+  hashtags varchar[] [note: 'Список хештегов']
+  user_id uuid [not null]
+  likes_count integer [default: 0]
+  views_count integer [default: 0]
+  created_at timestamp
+}
+
+Table posts_media{
+  post_id uuid [ref: > posts.id]
+  media_id uuid [ref: > media.id]
+  primary key (post_id, media_id)
+}
+
+Table comments {
+  id uuid [primary key]
+  post_id uuid
+  description text [note: 'Текстовое содержимое комментария']
+  user_id uuid [not null]
+  likes_count integer [default: 0]
+  created_at timestamp
+}
+
+Table comments_media{
+  comment_id uuid [ref: > posts.id]
+  media_id uuid [ref: > media.id]
+  primary key (post_id, media_id)
+}
+
+Table messages {
+  id uuid [primary key]
+  chat_id uuid
+  message_text text
+  is_readed bool
+  user_id uuid
+  created_at timestamp
+}
+
+Ref user_posts: posts.user_id > users.id 
+Ref user_messages: messages.user_id > users.id 
+Ref post_comments: comments.post_id > posts.id
+Ref user_relation: users.id > relations.related_user_id
+Ref user_relations_id: users.id > relations.user_id
+Ref user_photo: media.id < users.photo 
+
+
