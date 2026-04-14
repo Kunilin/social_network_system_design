@@ -1,0 +1,6 @@
+Создаются три пути, в которых хранятся файлы разных типов - фото, видео, аудио:
+
+1. {path_to_s3}/media/photos
+2. {path_to_s3}/media/videos
+3. {path_to_s3}/media/audios
+
