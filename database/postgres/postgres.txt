@@ -54,7 +54,7 @@ Table comments {
 }
 
 Table comments_media{
-  comment_id uuid [ref: > posts.id]
+  comment_id uuid [ref: > comments.id]
   media_id uuid [ref: > media.id]
   primary key (post_id, media_id)
 }
