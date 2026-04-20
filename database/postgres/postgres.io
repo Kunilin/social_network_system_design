@@ -1,5 +1,12 @@
-// Use DBML to define your database structure
-// Docs: https://dbml.dbdiagram.io/docs
+// Replication:
+// Master - slave (async)
+// Реплики предназначены для ускорения операций SELECT и разгрузки ноды мастера
+// replication factor 3
+// 
+// Sharding:
+// Routing реализуем с помощью прокси между БД и клиентом
+// Способ шардирования - key based (не будет дизбаланса, лучше рапределение по шардам) по user_id
+//
 
 Table users {
   id uuid [primary key]
