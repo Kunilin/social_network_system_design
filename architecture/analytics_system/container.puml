@@ -1,0 +1,44 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+ContainerQueue(eventQueue, "Events queue", "Kafka", "Receives user activity events from the core system")
+
+System_Boundary(coreSystem, "Core system") {
+    Container(chatService, "Chat Service", "Go", "Publishes events about sending and reading messages")
+    Container(friendsService, "Friends Service", "Go", "Publishes events about friendship actions")
+    Container(postService, "Post Service", "Go", "Publishes events about creating and viewing posts")
+}
+
+System_Boundary(analyticsSystem, "Analytics system") {
+    Container(ingestionService, "Ingestion Service", "Go", "Consumes events from Kafka, validates schema and routes data")
+    Container(streamProcessor, "Stream Processor", "Flink / Kafka Streams", "Builds near real-time aggregations and sessions")
+    Container(batchEtl, "Batch ETL", "Spark", "Recomputes heavy aggregations and prepares historical marts")
+    Container(reportApi, "Analytics API", "Go", "Provides reports, dashboards and drill-down endpoints")
+
+    ContainerDb(rawStorage, "Raw events storage", "S3", "Stores immutable event log for replay and offline processing", $tags="db")
+    ContainerDb(olapStorage, "OLAP storage", "ClickHouse", "Stores aggregated metrics for low-latency analytical queries", $tags="db")
+    ContainerDb(metadataStorage, "Metadata database", "PostgreSQL", "Stores report definitions, segment configs and access rules", $tags="db")
+    ContainerDb(cache, "Analytics cache", "Redis", "Caches hot reports and frequent filter combinations", $tags="db")
+}
+
+Rel(user, reportApi, "Requests user analytics and reports", "REST")
+Rel(chatService, eventQueue, "Publishes chat activity events")
+Rel(friendsService, eventQueue, "Publishes friendship activity events")
+Rel(postService, eventQueue, "Publishes post activity events")
+
+Rel(ingestionService, eventQueue, "Consumes events")
+Rel(ingestionService, rawStorage, "Writes raw events")
+Rel(ingestionService, streamProcessor, "Streams validated events")
+
+Rel(streamProcessor, olapStorage, "Writes near real-time aggregates")
+Rel(streamProcessor, metadataStorage, "Reads metric definitions and segment rules")
+
+Rel(batchEtl, rawStorage, "Reads historical raw events")
+Rel(batchEtl, olapStorage, "Builds batch aggregates and marts")
+Rel(batchEtl, metadataStorage, "Reads and updates ETL metadata")
+
+Rel(reportApi, cache, "Reads and writes cached reports")
+Rel(reportApi, olapStorage, "Executes analytical queries")
+Rel(reportApi, metadataStorage, "Reads report definitions and access rules")
+@enduml

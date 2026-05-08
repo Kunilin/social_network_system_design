@@ -1,0 +1,10 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+Container(coreSystem, "Core system", "Software system", "Provides the user with functionality for using the VK social network")
+Container(analyticsSystem, "Analytics system", "Software system", "Stores different analytic information about VK user activity")
+
+Rel(user, coreSystem, "The client uses the social network VK")
+Rel(user, analyticsSystem, "Gets different information by VK user")
+@enduml

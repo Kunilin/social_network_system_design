@@ -1,0 +1,51 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User")
+Container(loadBalancer, "Load Balancer", "Nginx", "Uses sticky sessions")
+Container(apiGateway, "Api Gateway", "Go", "For auth and rate limiting")
+Container(analyticsSystem, "Analytics system", "Software system", "Stores different analytic information about VK user activity")
+ContainerQueue(messageQueue, "Analytics Events queue", "Kafka", "Message queue for events by user activity")
+
+System_Boundary(coreSystem, "Core system") {
+    Container(chatService, "Chat Service", "Go", "Handles requests to send message or read messages", $tags="webApp")
+    ContainerDb(chatDatabase, "Chat database", "PgSQL", "Stores all chats and messages",  $tags="db")
+    ContainerDb(s3ChatDatabase, "S3 chat database", "S3", "Stores media of messages",  $tags="db")
+
+    Container(friendsService, "Friends Service", "Go", "Handles add friend and read friends list requests", $tags="webApp")
+    ContainerDb(friendsDatabase, "Friends database", "PgSQL", "Stores all friends relations",  $tags="db")
+
+    Container(postService, "Post Service", "Go", "Handles requests to get posts feed and create post", $tags="webApp")
+    ContainerDb(postDatabase, "Post database", "PgSQL", "Stores all posts",  $tags="db")
+    ContainerDb(postCache, "Post cache", "Redis", "Stores popular posts of celebrities",  $tags="db")
+    ContainerDb(s3PostDatabase, "S3 post database", "S3", "Stores media of posts",  $tags="db")
+
+    ContainerQueue(chatQueue, "Chat Events queue", "Kafka", "Message queue for message notifications")
+    Container(notificationService, "Notification Service", "Go", "Sends notifications to user")
+}
+
+Rel(user, loadBalancer, "The client goes to use the social network VK", "REST")
+Rel(loadBalancer, apiGateway, "Goes to API Gateway to have an authentication and authorization", "REST")
+
+Rel(apiGateway, postService, "Makes requests to get posts feed or create new post handlers", "REST")
+Rel(postService, postDatabase, "Gets and puts posts and metadata")
+Rel(postService, postCache, "Gets and puts the most popular posts")
+Rel(postService, s3PostDatabase, "Gets and puts media of posts")
+
+Rel(apiGateway, friendsService, "Makes requests add friend and read friends list", "REST")
+Rel(friendsService, friendsDatabase, "Gets and puts friends relations")
+
+Rel(apiGateway, chatService, "Makes requests to send message or read messages", "REST")
+Rel(chatService, chatDatabase, "Gets and puts messages and chats")
+Rel(chatService, s3ChatDatabase, "Gets and puts media of messages")
+
+Rel(chatService, chatQueue, "Publishes messages events to notify user")
+Rel(notificationService, chatQueue, "Get messages from queue")
+Rel(user, notificationService, "Websocket connection. Receives notifications")
+
+Rel(chatService, messageQueue, "Publishes activity by user in chats")
+Rel(friendsService, messageQueue, "Publishes activity by user with friends")
+Rel(postService, messageQueue, "Publishes activity by user with posts")
+
+Rel(analyticsSystem, messageQueue, "Subscribes on user activity with chats, friends and posts")
+@enduml
